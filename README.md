@@ -2,8 +2,11 @@ Eric Wolf
 Programming Challenge: Secret Santa
 
 Usage:
+
   secret_santa --santa <santa_name>  - Returns the person that <santa_name> should buy for
+  
   secret_santa --init <filename>     - Reads a JSON file describing the family for the given year
+  
   secret_santa --dump                - Lists every Secret Santa and person they are buying for
 
 Assumptions:
@@ -11,7 +14,7 @@ Assumptions:
   2. Stateful (each time you enter the same Santa name, you get the same person to buy for)
   3. There must be at least two people in the initial set (for Part 1)
   4. All names will be unique
-     a. Capitalization will always be consistent "Rudolph"
+     a. Capitalization will always be consistent. e.g., "Rudolph"
      b. Names will be in ASCII (no Unicode or Punycode)
   5. Number of Santa assignments will be small, so complexity is not a concern
 
@@ -27,5 +30,5 @@ Part Two:
 
 Part Three:
   1. A person cannot be Secret Santa for someone in their immediate family
-     a. Immediate family includes: spouse, parents, children
-     b. A person can be part of two families (a parent in one family and a child in another)
+     * Immediate family includes: spouse, parents, children
+     * A person can be part of two families (a parent in one family and a child in another)
