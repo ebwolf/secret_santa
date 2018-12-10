@@ -1,7 +1,7 @@
 {
   "reindeer": [
-    "Comet",
-    "Cupid",
-    "vixen"
+    ["Comet",1,1],
+    ["Cupid",1,1],
+    ["Vixen",1,2]
   ]
 }

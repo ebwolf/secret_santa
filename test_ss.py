@@ -29,11 +29,15 @@ def test_no_self_gifting():
     """
     ss = SecretSanta()
     ss.initialize("test_data_good.json")
+    ss.year = '2016'
+    ss.valid_years.append(ss.year)
+    ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
     ss.assign_santas_with_retry()
 
     for santa in ss.secret_santas.keys():
         gifted = ss.get(santa)
         assert santa != gifted
+
 
 def test_no_repeats_for_three_years():
     """make sure a Santa doesn't get assigned the same Gifted over 3 year period
@@ -44,7 +48,7 @@ def test_no_repeats_for_three_years():
         ss = SecretSanta()
         ss.year = '2016'
 
-        ss.initialize("test_data_stress.json")
+        ss.initialize("test_data_good.json")
         ss.assign_santas_with_retry()
         ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
         ss.valid_years.append(ss.year)
@@ -74,16 +78,60 @@ def test_no_repeats_for_three_years():
     print("Completed {} iterations successfully.".format(stress))
 
 
+def test_no_family_member_santas():
+    """make sure a Santa doesn't get assigned the same Gifted over 3 year period
+       Due to randomness, this will use a stress test
+    """
+    for stress in range(MAX_STRESS_ITERATIONS):
+        # Prepare three years of Santa assignments
+        ss = SecretSanta()
+
+        ss.year = '2016'
+        ss.initialize("test_data_good.json")
+        ss.assign_santas_with_retry()
+        ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
+        ss.valid_years.append(ss.year)
+
+        ss.year = '2017'
+        ss.reassign_santas(ss.year)
+        ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
+        ss.valid_years.append(ss.year)
+
+        ss.year = '2018'
+        ss.reassign_santas(ss.year)
+        ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
+        ss.valid_years.append(ss.year)
+
+        for santa in ss.secret_santas.keys():
+            ss.year = '2016'
+            gifted_2016 = ss.get(santa)
+            ss.year = '2017'
+            gifted_2017 = ss.get(santa)
+            ss.year = '2018'
+            gifted_2018 = ss.get(santa)
+
+            for famidx in ss.families:
+                if santa in ss.families[famidx]:
+                    assert gifted_2016 not in ss.families[famidx]
+                    assert gifted_2017 not in ss.families[famidx]
+                    assert gifted_2018 not in ss.families[famidx]
+
+    print("Completed {} iterations successfully.".format(stress))
+
+
 def test_load_save():
     """Test initializing, saving, and reloading
     """
     ss1 = SecretSanta()
+    ss1.year = "2016"
     ss1.initialize("test_data_good.json")
     ss1.assign_santas_with_retry()
+    ss1.secret_santas_years[ss1.year] = ss1.secret_santas.copy()
     ss1.save()
 
     ss2 = SecretSanta()
     ss2.load()
+    ss2.year = ss1.year
 
     # Make sure the Secret Santas have persisted
     for santa in ss2.secret_santas:
@@ -95,14 +143,15 @@ def test_stress_santa_assignments():
         - Can we run the assignments operation 10000 times in 1 second?
     """
     ss = SecretSanta()
-    ss.year = 2017
-    ss.initialize("test_data_stress.json")
+    ss.year = '2016'
+    ss.initialize("test_data_good.json")
 
     start = time.time()
 
     # 1000 iterations
     for stress in range(MAX_STRESS_ITERATIONS):
         ss.assign_santas_with_retry()
+        ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
 
     end = time.time()
 
@@ -110,13 +159,16 @@ def test_stress_santa_assignments():
 
     assert(end - start < MAX_STRESS_TIME)
 
-    ss.year = 2018
+
+    ss.year = '2017'
 
     start = time.time()
 
     # 1000 iterations
     for stress in range(MAX_STRESS_ITERATIONS):
         ss.assign_santas_with_retry()
+        ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
+        ss.valid_years.append(ss.year)
 
     end = time.time()
 
@@ -124,7 +176,8 @@ def test_stress_santa_assignments():
 
     assert(end - start < MAX_STRESS_TIME)
 
-    ss.year = 2019
+
+    ss.year = '2018'
 
     start = time.time()
 

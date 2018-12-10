@@ -1,9 +1,14 @@
 {
   "santas": [
-    "Comet",
-    "Cupid",
-    "Vixen",
-    "Donner",
-    "Blitzen"
+    ["Comet",1,1],
+    ["Cupid",1,1],
+    ["Vixen",1,2],
+    ["Donner",2,2],
+    ["Blitzen",1,3],
+    ["Dasher",3,3],
+    ["Dancer",3,3],
+    ["Prancer",3,3],
+    ["Rudolph",2,2],
+    ["Danzig",2,2]
   ]
 }

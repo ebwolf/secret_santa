@@ -2,11 +2,12 @@
 import argparse
 import json
 import sqlite3
+import pprint
 from random import shuffle
 
 
 MINIMUM_SECRET_SANTAS = 4
-MAX_ASSIGNMENT_RETRIES = 100
+MAX_ASSIGNMENT_RETRIES = 500
 
 class Error(Exception):
     """Base class for other exceptions"""
@@ -39,6 +40,7 @@ class TooManySantaAssignmentRetries(Error):
 class SecretSanta:
     secret_santas_years = {}
     secret_santas = {}
+    families = {}
     candidates = []
     year = ""
     valid_years = []
@@ -83,9 +85,36 @@ class SecretSanta:
             self.secret_santas = self.secret_santas_years[year].copy()
 
             for santa in self.secret_santas:
-                sql = 'INSERT INTO "santas" VALUES({}, {}, "{}","{}")'.format(id, year, santa, self.secret_santas[santa])
+                sql = 'INSERT INTO "santas" VALUES({}, {}, "{}","{}")'\
+                    .format(id, year, santa, self.secret_santas[santa])
                 c.execute(sql)
                 id += 1
+
+        # Create the table
+        c = conn.cursor()
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS families (
+                id integer PRIMARY KEY AUTOINCREMENT,
+                santa text NOT NULL,
+                family integer NOT NULL
+                )
+            """)
+
+        # Clear out the old table
+        c.execute("DELETE FROM families")
+        conn.commit()
+        c = conn.cursor()
+
+        # Write the families to SQLite
+        famidx = 1
+        for famnum in self.families:
+            family = self.families[famnum]
+            for fammbr in family:
+                sql = 'INSERT INTO "families" VALUES({}, "{}", {})'\
+                    .format(id, fammbr, famidx)
+                c.execute(sql)
+                id += 1
+            famidx += 1
 
         conn.commit()
         conn.close()
@@ -124,6 +153,22 @@ class SecretSanta:
             row_year = row[1]
             self.secret_santas_years[row_year][row[2]] = row[3]
 
+        # Load the families
+        try:
+            c.execute("Select * FROM families")
+        except Error as e:
+            raise SecretSantaSQLNotInitialized(e)
+
+        rows = c.fetchall()
+
+        # Load each family from the database
+        for row in rows:
+            if row[2] not in self.families:
+                self.families[row[2]] = []
+
+            if row[1] not in self.families[row[2]]:
+                self.families[row[2]].append(row[1])
+
         conn.close()
 
     def find_gifted(self, santa):
@@ -161,6 +206,16 @@ class SecretSanta:
         if len(candidates) == 0:
             raise RetrySantaAssignments("Ran out of candidates")
 
+        # 3. Remove candidates in the same families
+        for famidx in self.families:
+            if santa in self.families[famidx]:
+                for fammbr in self.families[famidx]:
+                    if fammbr in candidates:
+                        candidates.remove(fammbr)
+
+        if len(candidates) == 0:
+            raise RetrySantaAssignments("Ran out of candidates")
+
         return candidates[0]
 
     def assign_santas(self):
@@ -186,7 +241,8 @@ class SecretSanta:
             else:
                 return
 
-        raise TooManySantaAssignmentRetries("Santa Assignment #{} failed".format(MAX_RETRIES))
+        pprint.pprint(self.secret_santas)
+        raise TooManySantaAssignmentRetries("Santa Assignment #{} failed".format(MAX_ASSIGNMENT_RETRIES))
 
     def reassign_santas(self, year):
         """Reassign Santas for the specified year
@@ -216,7 +272,20 @@ class SecretSanta:
         santas = json_slist['santas']
 
         for santa in santas:
-            self.secret_santas[santa] = ""
+            self.secret_santas[santa[0]] = ""
+
+            # Save the Santa in the families
+            if santa[1] not in self.families:
+                self.families[santa[1]] = []
+
+            if santa[2] not in self.families:
+                self.families[santa[2]] = []
+
+            if santa[0] not in self.families[santa[1]]:
+                self.families[santa[1]].append(santa[0])
+
+            if santa[0] not in self.families[santa[2]]:
+                self.families[santa[2]].append(santa[0])
 
         if len(self.secret_santas.keys()) < MINIMUM_SECRET_SANTAS:
             raise NotEnoughSantas("Not enough Santas in the input file '{}'".format(filename))

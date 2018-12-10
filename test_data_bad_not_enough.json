@@ -1,7 +1,7 @@
 {
   "santas": [
-    "Rudolph",
-    "Donner",
-    "Vixen"
+    ["Comet",1,1],
+    ["Cupid",1,1],
+    ["Vixen",1,2]
   ]
 }
