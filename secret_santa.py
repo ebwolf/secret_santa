@@ -1,47 +1,57 @@
-
+""" Secret Santa
+    Assigns Secret Santas for the family
+    Eric Wolf
+    ebwolf@gmail.com
+"""
 import argparse
 import json
 import sqlite3
-import pprint
 from random import shuffle
 
 
 MINIMUM_SECRET_SANTAS = 4
 MAX_ASSIGNMENT_RETRIES = 500
 
+
 class Error(Exception):
     """Base class for other exceptions"""
     pass
+
 
 class MissingSantasKey(Error):
     """Raised when Santas key missing from JSON"""
     pass
 
+
 class NotEnoughSantas(Error):
     """Raised when not enough Santas in the input file"""
     pass
+
 
 class SecretSantaSQLNotInitialized(Error):
     """Secret Santa SQLite Database has not been initialized"""
     pass
 
+
 class NotInSecretSantaList(Error):
     """Name is not found in the Secret Santa list"""
     pass
+
 
 class RetrySantaAssignments(Error):
     """Simplify Santa assignment difficulties trough retries"""
     pass
 
+
 class TooManySantaAssignmentRetries(Error):
     """Santa Assignment retried too many times"""
     pass
+
 
 class SecretSanta:
     secret_santas_years = {}
     secret_santas = {}
     families = {}
-    candidates = []
     year = ""
     valid_years = []
 
@@ -58,7 +68,7 @@ class SecretSanta:
 
         return self.secret_santas[ss_name]
 
-    def save(self):
+    def save_santas(self):
         """ Write the Secret Santa list to SQLite for persistent storage
         """
         # Create the database connection, this will create the file if it doesn't exist
@@ -80,15 +90,24 @@ class SecretSanta:
         conn.commit()
         c = conn.cursor()
 
-        id = 1
+        index = 1
         for year in self.secret_santas_years:
             self.secret_santas = self.secret_santas_years[year].copy()
 
             for santa in self.secret_santas:
                 sql = 'INSERT INTO "santas" VALUES({}, {}, "{}","{}")'\
-                    .format(id, year, santa, self.secret_santas[santa])
+                    .format(index, year, santa, self.secret_santas[santa])
                 c.execute(sql)
-                id += 1
+                index += 1
+
+        conn.commit()
+        conn.close()
+
+    def save_families(self):
+        """ Write the Secret Santa list to SQLite for persistent storage
+        """
+        # Create the database connection, this will create the file if it doesn't exist
+        conn = sqlite3.connect("secret_santa.sqlite")
 
         # Create the table
         c = conn.cursor()
@@ -106,18 +125,21 @@ class SecretSanta:
         c = conn.cursor()
 
         # Write the families to SQLite
-        famidx = 1
-        for famnum in self.families:
-            family = self.families[famnum]
-            for fammbr in family:
+        family_member_index = 1
+        for family_number in self.families:
+            family = self.families[family_number]
+            for family_member in family:
                 sql = 'INSERT INTO "families" VALUES({}, "{}", {})'\
-                    .format(id, fammbr, famidx)
+                    .format(family_member_index, family_member, family_number)
                 c.execute(sql)
-                id += 1
-            famidx += 1
+                family_member_index += 1
 
         conn.commit()
         conn.close()
+
+    def save(self):
+        self.save_santas()
+        self.save_families()
 
     def load(self):
         """ Read the Secret Santas from SQLite
@@ -171,11 +193,13 @@ class SecretSanta:
 
         conn.close()
 
-    def find_gifted(self, santa):
+    def find_gifted(self, santa, candidates):
         """ Find someone for this Santa to give to
+            Starts with a list of candidates and applies rules to remove
+            people from the list. An exception gets raised if we run out
+            of candidates, which should retry the full candidate selection
+            far from optimal but this only needs to run about once a year.
         """
-        candidates = self.candidates.copy()
-
         # 1. Remove this Santa
         if santa in candidates:
             candidates.remove(santa)
@@ -221,14 +245,14 @@ class SecretSanta:
     def assign_santas(self):
         """ Assign the random Santas - Extend this function to add more rules about Santa assignments
         """
-        self.candidates = list(self.secret_santas.keys())
+        candidates = list(self.secret_santas.keys())
 
-        shuffle(self.candidates)
+        shuffle(candidates)
 
         for santa in self.secret_santas:
-            gifted = self.find_gifted(santa)
+            gifted = self.find_gifted(santa, candidates.copy())
             self.secret_santas[santa] = gifted
-            self.candidates.remove(gifted)
+            candidates.remove(gifted)
 
     def assign_santas_with_retry(self):
         """Retry Santa assignments until we get a good one, or we've tried 100 times
@@ -241,7 +265,6 @@ class SecretSanta:
             else:
                 return
 
-        pprint.pprint(self.secret_santas)
         raise TooManySantaAssignmentRetries("Santa Assignment #{} failed".format(MAX_ASSIGNMENT_RETRIES))
 
     def reassign_santas(self, year):
@@ -296,11 +319,11 @@ class SecretSanta:
         """ List all the Secret Santas and who they are buying for
         """
         if self.year not in self.valid_years:
-            raise NotInSecretSantaList("{} is not a valid year. You may need to make assignemnts.".format(self.year))
+            raise NotInSecretSantaList("{} is not a valid year. You may need to make assignments.".format(self.year))
 
         self.secret_santas = self.secret_santas_years[self.year].copy()
 
-        print("Listing all Secret Santa assignemnts for {}".format(self.year))
+        print("Listing all Secret Santa assignments for {}".format(self.year))
         for santa in self.secret_santas:
             print("{} buys for {}".format(santa, self.secret_santas[santa]))
 
@@ -324,8 +347,8 @@ if __name__ == "__main__":
 
         try:
             ss.assign_santas_with_retry()
-        except TooManySantaAssignmentRetries as e:
-            print(e.msg)
+        except TooManySantaAssignmentRetries as error:
+            print(error)
             exit()
 
         ss.secret_santas_years[ss.year] = ss.secret_santas.copy()

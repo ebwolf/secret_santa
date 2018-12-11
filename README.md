@@ -1,5 +1,6 @@
-Eric Wolf
-Programming Challenge: Secret Santa, Part 2
+Eric Wolf ebwolf@gmail.com
+
+Programming Challenge: Secret Santa, Part 3
 
 Usage:
 
@@ -22,12 +23,16 @@ force with retries to make it work. The assignment of Secret Santas only runs on
 My tests ensure that this brute force method isn't too intensive with a dataset of 10 family
 members. Essentially, 1000 executes are completed in less than 1 second. Significantly larger
  data sets may require a better algorithm.
+ 
 2. Repeat assignments are only tested backwards in time but the program allows you to specify a year.
 Therefore, if you --init for --year 2016, then --assign for year --2019, then assign for --years
 2017 and 2018, there will be no checks for repeats in 2020 unless you reassign.
+
 3. The "test_data_stress.json" file will fail in the third year because there are only 2 possible 
 assignments for one of the Santas and the combination of the no-family member and no repeat in 3 years
-rules.
+rules. I didn't have time to write a validation during initialization for enough members of other 
+families to guarantee the 3-year rule can be met for each Secret Santa.
+
 4. The database is not meant to be backwards compatible. Please delete "secret_santa.sqlite" if you
 test run the code between parts. That is, delete the database completely after running Part 1
 and before running Part 2. Again, delete the database completely after running Part 2 and before

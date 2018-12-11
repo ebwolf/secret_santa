@@ -1,0 +1,85 @@
+> python3 secret_santa.py --year 2016 --init test_data_good.json
+Listing all Secret Santa assignments for 2016
+Comet buys for Dasher
+Cupid buys for Danzig
+Vixen buys for Dancer
+Donner buys for Blitzen
+Blitzen buys for Donner
+Dasher buys for Cupid
+Dancer buys for Vixen
+Prancer buys for Rudolph
+Rudolph buys for Comet
+Danzig buys for Prancer
+
+> python3 secret_santa.py --year 2016 --dump
+Listing all Secret Santa assignments for 2016
+Comet buys for Dasher
+Cupid buys for Danzig
+Vixen buys for Dancer
+Donner buys for Blitzen
+Blitzen buys for Donner
+Dasher buys for Cupid
+Dancer buys for Vixen
+Prancer buys for Rudolph
+Rudolph buys for Comet
+Danzig buys for Prancer
+
+> python3 secret_santa.py --year 2016 --santa Comet
+Comet buys for Dasher
+
+> python3 secret_santa.py --year 2017 --assign
+Listing all Secret Santa assignments for 2017
+Comet buys for Rudolph
+Cupid buys for Prancer
+Vixen buys for Dasher
+Donner buys for Cupid
+Blitzen buys for Danzig
+Dasher buys for Vixen
+Dancer buys for Comet
+Prancer buys for Donner
+Rudolph buys for Dancer
+Danzig buys for Blitzen
+
+> python3 secret_santa.py --year 2017 --santa Comet
+Comet buys for Rudolph
+
+> python3 secret_santa.py --year 2016 --santa Comet
+Comet buys for Dasher
+
+> python3 secret_santa.py --year 2018 --santa Comet
+2018 is not a valid year. You may need to make assignments.
+
+> python3 secret_santa.py --year 2018 --assign
+Listing all Secret Santa assignments for 2018
+Comet buys for Danzig
+Cupid buys for Dasher
+Vixen buys for Prancer
+Donner buys for Dancer
+Blitzen buys for Rudolph
+Dasher buys for Donner
+Dancer buys for Cupid
+Prancer buys for Vixen
+Rudolph buys for Blitzen
+Danzig buys for Comet
+
+> python3 secret_santa.py --year 2016 --santa Comet
+Comet buys for Dasher
+
+> python3 secret_santa.py --year 2017 --santa Comet
+Comet buys for Rudolph
+
+> python3 secret_santa.py --year 2018 --santa Comet
+Comet buys for Danzig
+
+> python3 secret_santa.py --year 2019 --assign
+Listing all Secret Santa assignments for 2019
+Comet buys for Dasher
+Cupid buys for Danzig
+Vixen buys for Dancer
+Donner buys for Blitzen
+Blitzen buys for Donner
+Dasher buys for Cupid
+Dancer buys for Vixen
+Prancer buys for Rudolph
+Rudolph buys for Comet
+Danzig buys for Prancer

@@ -1,6 +1,5 @@
 import pytest
 import time
-import pprint
 
 from secret_santa import SecretSanta, MissingSantasKey, NotEnoughSantas
 
@@ -43,7 +42,7 @@ def test_no_repeats_for_three_years():
     """make sure a Santa doesn't get assigned the same Gifted over 3 year period
        Due to randomness, this will use a stress test
     """
-    for stress in range(MAX_STRESS_ITERATIONS):
+    for stress in range(MAX_STRESS_ITERATIONS+1):
         # Prepare three years of Santa assignments
         ss = SecretSanta()
         ss.year = '2016'
@@ -82,7 +81,7 @@ def test_no_family_member_santas():
     """make sure a Santa doesn't get assigned the same Gifted over 3 year period
        Due to randomness, this will use a stress test
     """
-    for stress in range(MAX_STRESS_ITERATIONS):
+    for stress in range(MAX_STRESS_ITERATIONS+1):
         # Prepare three years of Santa assignments
         ss = SecretSanta()
 
@@ -119,7 +118,7 @@ def test_no_family_member_santas():
     print("Completed {} iterations successfully.".format(stress))
 
 
-def test_load_save():
+def test_persistence():
     """Test initializing, saving, and reloading
     """
     ss1 = SecretSanta()
@@ -137,6 +136,14 @@ def test_load_save():
     for santa in ss2.secret_santas:
         assert(ss1.get(santa) == ss2.get(santa))
 
+    for family_number in ss1.families:
+        family1 = ss1.families[family_number]
+
+        assert(family_number in ss2.families)
+
+        for family_member in family1:
+            assert(family_member in ss2.families[family_number])
+
 
 def test_stress_santa_assignments():
     """Stress test the santa assignments
@@ -149,45 +156,43 @@ def test_stress_santa_assignments():
     start = time.time()
 
     # 1000 iterations
-    for stress in range(MAX_STRESS_ITERATIONS):
+    for stress in range(MAX_STRESS_ITERATIONS+1):
         ss.assign_santas_with_retry()
         ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
 
     end = time.time()
 
-    assert(stress == MAX_STRESS_ITERATIONS-1)
+    assert(stress == MAX_STRESS_ITERATIONS)
 
     assert(end - start < MAX_STRESS_TIME)
-
 
     ss.year = '2017'
 
     start = time.time()
 
     # 1000 iterations
-    for stress in range(MAX_STRESS_ITERATIONS):
+    for stress in range(MAX_STRESS_ITERATIONS+1):
         ss.assign_santas_with_retry()
         ss.secret_santas_years[ss.year] = ss.secret_santas.copy()
         ss.valid_years.append(ss.year)
 
     end = time.time()
 
-    assert(stress == MAX_STRESS_ITERATIONS-1)
+    assert(stress == MAX_STRESS_ITERATIONS)
 
     assert(end - start < MAX_STRESS_TIME)
-
 
     ss.year = '2018'
 
     start = time.time()
 
     # 1000 iterations
-    for stress in range(MAX_STRESS_ITERATIONS):
+    for stress in range(MAX_STRESS_ITERATIONS+1):
         ss.assign_santas_with_retry()
 
     end = time.time()
 
-    assert(stress == MAX_STRESS_ITERATIONS-1)
+    assert(stress == MAX_STRESS_ITERATIONS)
 
     assert(end - start < MAX_STRESS_TIME)
 
